@@ -17,12 +17,6 @@ public class SendOtp {
 
     @Autowired
     OTPService otpService;
-
-    @GetMapping("/")
-    public String index(Model model){
-        model.addAttribute("userform",new Otp());
-        return "index";
-    }
     @GetMapping
     public ResponseEntity<GetOTPResponse> getOTP(@RequestParam String username){
         GetOTPResponse getOTPResponse= new GetOTPResponse();

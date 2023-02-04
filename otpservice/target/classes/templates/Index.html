@@ -5,14 +5,20 @@
     <title>Send OTP</title>
 </head>
 <body>
+<form th:>
 <h1>Send OTP</h1>
-<form th:action="@{/otp}" method="Get">
-    <div>
-        <label>Enter your phone number:</label>
-        <input type="text" name="phoneNumber"/>
-    </div>
-    <button type="submit">Send OTP</button>
-    <h2 th:text="${otp}"></h2>
+<div class="content">
+    <p>Click on the button to generate your one-time password</p>
+    <button class="btn" id="btn">
+        <span>Generate</span>
+    </button>
+
+    <input id="input" value="" placeholder="Insert number of digits">
+
+
+
+
+</div>
 </form>
 </body>
 </html>
