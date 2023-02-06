@@ -10,6 +10,7 @@ import com.demo.otpservice.service.OTPService;
 import com.demo.otpservice.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -33,6 +34,9 @@ public class OTPServiceImpl implements OTPService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Value("${OTP.thresholdseconds}")
+    private long otpExpiryThreshold;
 
 
     @Override
@@ -92,7 +96,18 @@ public class OTPServiceImpl implements OTPService {
         try{
             if(!username.isBlank() && otp>0){
                 Otp savedOTPEntry = otpRepo.getByUserId(username);
-                if(otp==savedOTPEntry.getOtp()){
+                //Checking if OTP is Expired in below 1st condition of IF
+                // and send response accordingly
+                if(savedOTPEntry
+                        .getCreatedTimestamp()
+                        .toInstant()
+                        .plusSeconds(otpExpiryThreshold)
+                        .isBefore(Instant.now())){
+//                    OTP is Expired
+                    validateOTPResponse.setResponseCode(HttpStatus.UNAUTHORIZED.value());
+                    validateOTPResponse.setResponseMsg("OTP is expired!");
+                }
+                else if(otp==savedOTPEntry.getOtp()){
 //                    OTP is valid
                     UserData userData =  new UserData();
                     userData.setUsername(username);
@@ -101,10 +116,11 @@ public class OTPServiceImpl implements OTPService {
                     validateOTPResponse.setUserId(userData.getId());
                     validateOTPResponse.setUsername(userData.getUsername());
                     validateOTPResponse.setToken(jwtUtil.generateToken(String.valueOf(userData.getId())));
-
+                    validateOTPResponse.setResponseCode(HttpStatus.OK.value());
+                    validateOTPResponse.setResponseMsg(HttpStatus.OK.getReasonPhrase());
                 }else {
-//                    OTP is Invalid
-
+                    validateOTPResponse.setResponseCode(HttpStatus.BAD_REQUEST.value());
+                    validateOTPResponse.setResponseMsg(HttpStatus.BAD_REQUEST.getReasonPhrase());
                 }
             }
 
